@@ -22,28 +22,47 @@
             
             <nav class="sidebar-nav">
                 <p class="nav-category">Main</p>
-                <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i data-lucide="layout-dashboard"></i> Dashboard
-                </a>
+                <div class="nav-item-group">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <i data-lucide="layout-dashboard"></i> Dashboard
+                    </a>
+                    <div class="nav-sub-list">
+                        <a href="{{ route('admin.dashboard') }}" class="nav-sub-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Overview</a>
+                        <a href="#" class="nav-sub-link">Analytics</a>
+                    </div>
+                </div>
                 
                 <p class="nav-category">Management</p>
-                <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
-                    <i data-lucide="package"></i> Products
-                </a>
-                <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}">
-                    <i data-lucide="users"></i> Customers
-                </a>
-                <a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">
-                    <i data-lucide="shopping-cart"></i> Orders
-                </a>
+                <div class="nav-item-group">
+                    <div class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
+                        <i data-lucide="package"></i> Catalog
+                    </div>
+                    <div class="nav-sub-list">
+                        <a href="{{ route('products.index') }}" class="nav-sub-link {{ request()->url() == route('products.index') ? 'active' : '' }}">All Products</a>
+                        <a href="{{ route('products.create') }}" class="nav-sub-link {{ request()->routeIs('products.create') ? 'active' : '' }}">Add Product</a>
+                    </div>
+                </div>
+
+                <div class="nav-item-group">
+                    <div class="nav-link {{ request()->routeIs('orders.*') || request()->routeIs('customers.*') ? 'active' : '' }}">
+                        <i data-lucide="shopping-cart"></i> Sales
+                    </div>
+                    <div class="nav-sub-list">
+                        <a href="{{ route('orders.index') }}" class="nav-sub-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">Orders</a>
+                        <a href="{{ route('customers.index') }}" class="nav-sub-link {{ request()->routeIs('customers.*') ? 'active' : '' }}">Customers</a>
+                    </div>
+                </div>
                 
-                <p class="nav-category">Site Settings</p>
-                <a href="{{ route('admin.seo') }}" class="nav-link {{ request()->routeIs('admin.seo') ? 'active' : '' }}">
-                    <i data-lucide="globe"></i> SEO Config
-                </a>
-                <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
-                    <i data-lucide="settings"></i> General Settings
-                </a>
+                <p class="nav-category">Configuration</p>
+                <div class="nav-item-group">
+                    <div class="nav-link {{ request()->routeIs('admin.seo') || request()->routeIs('admin.settings') ? 'active' : '' }}">
+                        <i data-lucide="settings"></i> Site Config
+                    </div>
+                    <div class="nav-sub-list">
+                        <a href="{{ route('admin.seo') }}" class="nav-sub-link {{ request()->routeIs('admin.seo') ? 'active' : '' }}">SEO Settings</a>
+                        <a href="{{ route('admin.settings') }}" class="nav-sub-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}">General Settings</a>
+                    </div>
+                </div>
             </nav>
             
             <div style="padding: 1rem; border-top: 1px solid var(--color-border); margin-top: auto;">
