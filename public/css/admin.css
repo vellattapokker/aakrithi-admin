@@ -428,6 +428,32 @@ body {
     box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
 }
 
+/* ===== IMAGE UPLOAD DROP ZONE ===== */
+.image-drop-zone {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background: rgba(0, 0, 0, 0.01);
+}
+
+.image-drop-zone:hover {
+    border-color: var(--color-accent);
+    background: rgba(197, 160, 89, 0.05);
+}
+
+.image-drop-zone.drag-over {
+    border-color: var(--color-accent);
+    background: rgba(197, 160, 89, 0.1);
+    box-shadow: var(--gold-glow);
+    transform: scale(1.01);
+}
+
 @media (max-width: 1024px) {
     .grid-2-1, .grid-2 {
         grid-template-columns: 1fr;

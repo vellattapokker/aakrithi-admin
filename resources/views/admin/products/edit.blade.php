@@ -8,7 +8,7 @@
     <p style="color: var(--color-text-light); font-size: 0.875rem;">Modify the details of this product entry.</p>
 </div>
 
-<form action="{{ route('products.update', $product['id']) }}" method="POST" class="grid-2-1" id="productForm">
+<form action="{{ route('products.update', $product['id']) }}" method="POST" class="grid-2-1" id="productForm" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <div class="card">
@@ -53,14 +53,33 @@
 
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
         <div class="card">
-            <h3 style="font-size: 1.125rem; margin-bottom: 1.5rem; color: var(--color-text);">Product Media</h3>
-            <div class="form-group">
-                <label class="form-label">Primary Image URL</label>
-                <input type="url" name="image" class="form-control" value="{{ old('image', $product['image']) }}" required>
-                @if($product['image'])
-                <img src="{{ $product['image'] }}" style="width: 100%; height: 180px; object-fit: cover; margin-top: 1rem; border-radius: 8px; border: 1px solid var(--color-border);" alt="Preview">
-                @endif
+            <h3 style="font-size: 1.125rem; margin-bottom: 1.5rem; color: var(--color-text);">Product Image</h3>
+            
+            {{-- Drag & Drop Upload Zone --}}
+            <div id="dropZone" class="image-drop-zone" onclick="document.getElementById('image_file').click()">
+                <input type="file" name="image_file" id="image_file" accept="image/jpeg,image/png,image/jpg,image/webp" style="display: none;">
+                <div id="dropPlaceholder" style="text-align: center; {{ $product['image'] ? 'display: none;' : '' }}">
+                    <i data-lucide="upload-cloud" style="width: 48px; height: 48px; color: var(--color-accent); margin-bottom: 0.75rem;"></i>
+                    <p style="font-weight: 600; color: var(--color-text); margin-bottom: 0.25rem;">Drop image here or click to browse</p>
+                    <p style="font-size: 0.75rem; color: var(--color-text-light);">JPEG, PNG, WebP — Max 5MB</p>
+                </div>
+                <img id="imagePreview" src="{{ $product['image'] }}" alt="Preview" style="{{ $product['image'] ? '' : 'display: none;' }} width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px;">
             </div>
+            <button type="button" id="removeImage" style="{{ $product['image'] ? '' : 'display: none;' }} margin-top: 0.5rem; background: none; border: none; color: var(--color-error); font-size: 0.8rem; cursor: pointer; font-weight: 600;">✕ Remove & Replace Image</button>
+
+            @error('image')
+                <p style="color: var(--color-error); font-size: 0.8rem; margin-top: 0.5rem;">{{ $message }}</p>
+            @enderror
+            @error('image_file')
+                <p style="color: var(--color-error); font-size: 0.8rem; margin-top: 0.5rem;">{{ $message }}</p>
+            @enderror
+
+            {{-- URL Fallback --}}
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                <p style="font-size: 0.75rem; color: var(--color-text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">Or paste an image URL</p>
+                <input type="url" name="image" class="form-control" value="{{ old('image', $product['image']) }}" placeholder="https://...">
+            </div>
+
             <div class="form-group mt-1">
                 <label class="form-label">Badge (Optional)</label>
                 <input type="text" name="badge" class="form-control" value="{{ old('badge', $product['badge']) }}">
@@ -176,6 +195,59 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial run
     updatePreview();
+
+    // === IMAGE UPLOAD DRAG & DROP ===
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('image_file');
+    const imagePreview = document.getElementById('imagePreview');
+    const dropPlaceholder = document.getElementById('dropPlaceholder');
+    const removeBtn = document.getElementById('removeImage');
+
+    function showPreview(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            dropPlaceholder.style.display = 'none';
+            removeBtn.style.display = 'inline-block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    fileInput.addEventListener('change', function() {
+        if (this.files[0]) showPreview(this.files[0]);
+    });
+
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            showPreview(file);
+        }
+    });
+
+    removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        imagePreview.style.display = 'none';
+        imagePreview.src = '';
+        dropPlaceholder.style.display = 'block';
+        this.style.display = 'none';
+    });
 });
 </script>
 @endsection
