@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -35,7 +36,8 @@ class ProductController extends Controller
             'slug' => 'required|max:255|unique:products,slug',
             'price' => 'required|numeric',
             'category' => 'required',
-            'image' => 'required|url',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image' => 'nullable|url',
             'description' => 'required',
             'badge' => 'nullable|string',
             'meta_title' => 'nullable|max:255',
@@ -43,6 +45,17 @@ class ProductController extends Controller
             'og_image' => 'nullable|url',
         ]);
 
+        // Handle file upload - prioritize uploaded file over URL
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('products', 'public');
+            $validated['image'] = asset('storage/' . $path);
+        }
+
+        if (empty($validated['image'])) {
+            return back()->withErrors(['image' => 'Please upload an image or provide an image URL.'])->withInput();
+        }
+
+        unset($validated['image_file']);
         $validated['is_noindex'] = $request->has('is_noindex');
 
         Product::create($validated);
@@ -79,7 +92,8 @@ class ProductController extends Controller
             'slug' => 'required|max:255|unique:products,slug,' . $id,
             'price' => 'required|numeric',
             'category' => 'required',
-            'image' => 'required|url',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image' => 'nullable|url',
             'description' => 'required',
             'badge' => 'nullable|string',
             'meta_title' => 'nullable|max:255',
@@ -87,6 +101,21 @@ class ProductController extends Controller
             'og_image' => 'nullable|url',
         ]);
 
+        // Handle file upload - prioritize uploaded file over URL
+        if ($request->hasFile('image_file')) {
+            // Delete old local image if it exists
+            $oldPath = str_replace(asset('storage/'), '', $product->image);
+            if ($oldPath !== $product->image && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('image_file')->store('products', 'public');
+            $validated['image'] = asset('storage/' . $path);
+        } elseif (empty($validated['image'])) {
+            // Keep existing image if nothing new provided
+            $validated['image'] = $product->image;
+        }
+
+        unset($validated['image_file']);
         $validated['is_noindex'] = $request->has('is_noindex');
 
         $product->update($validated);
@@ -100,6 +129,13 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Product::findOrFail($id);
+
+        // Delete local image if it exists
+        $oldPath = str_replace(asset('storage/'), '', $product->image);
+        if ($oldPath !== $product->image && Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
